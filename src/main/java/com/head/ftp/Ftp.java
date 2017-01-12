@@ -79,7 +79,6 @@ public class Ftp {
 //        boolean blRet = FtpRemoveDir( strHostName , strUser , strPass , strDirTest ) ;
     }
 
-
     /**
     * 登录FTP服务器
     * */

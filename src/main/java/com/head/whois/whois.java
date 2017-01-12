@@ -18,7 +18,7 @@ public class whois {
         if ( strGet != null )
             System.out.println( strGet );
         else
-            System.out.println( "Error!" );
+            System.err.println( "Error!" );
     }
 
     public static String query( String strAddr )
