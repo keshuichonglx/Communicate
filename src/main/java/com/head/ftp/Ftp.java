@@ -68,6 +68,50 @@ public class Ftp {
         //文件上传测试
         boolean blRet = FtpUploadFile( strHostName , strUser , strPass , strLocalPath3 , strPath3 ) ;
         System.out.println( "Upload File: " + strPath3 + " ===> " + ((blRet != false)?"OK":"FALSE") ) ;
+
+        //文件删除测试
+        blRet = FtpDeleteFile( strHostName , strUser , strPass , strPath3 ) ;
+        System.out.println( "Delete File: " + strPath3 + " ===> " + ((blRet != false)?"OK":"FALSE") ) ;
+    }
+
+
+    /**
+    * 登录FTP服务器
+    * */
+    public static FTPClient FtpLogin( String strHostName , String strUser , String strPass  )
+    {
+        FTPClient ftpClient = new FTPClient();
+        FTPClientConfig config = new FTPClientConfig();
+        ftpClient.configure(config );
+
+        try{
+            ftpClient.connect(strHostName);
+            System.out.println("链接到服务器: " + strHostName + ".");
+            System.out.print( ftpClient.getReplyString() );
+
+            if( !FTPReply.isPositiveCompletion(ftpClient.getReplyCode()) ) {
+                ftpClient.disconnect();
+                System.err.println("FTP服务器登录失败!");
+                return null;
+            }
+            else System.out.println( "FTP服务器链接成功..." );
+
+            if ( strUser != null && strPass != null )
+            {
+                if ( !ftpClient.login(strUser, strPass) )  {
+                    ftpClient.disconnect();
+                    System.err.println("FTP服务器登录失败!");
+                    return null;
+                }
+                else System.out.println( "FTP服务器登录成功..." );
+            }
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+            ftpClient = null ;
+        }
+
+        return ftpClient ;
     }
 
     /**
@@ -78,34 +122,12 @@ public class Ftp {
                                             String strPass ,
                                             String strDirector  )
     {
-        FTPClient ftpClient = new FTPClient();
-        FTPClientConfig config = new FTPClientConfig();
-        ftpClient.configure(config );
+        FTPClient ftpClient = FtpLogin( strHostName , strUser , strPass  ) ;
+        if ( ftpClient == null )
+            return null ;
 
         FTPFile[] files = null ;
-
         try {
-            ftpClient.connect(strHostName);
-            System.out.println("链接到服务器: " + strHostName + ".");
-            System.out.print( ftpClient.getReplyString() );
-
-            if( FTPReply.isPositiveCompletion(ftpClient.getReplyCode()) == false ) {
-                ftpClient.disconnect();
-                System.err.println("FTP服务器登录失败!");
-                return null;
-            }
-            else System.out.println( "FTP服务器链接成功..." );
-
-            if ( strUser != null && strPass != null )
-            {
-                if ( ftpClient.login(strUser, strPass) == false )  {
-                    ftpClient.disconnect();
-                    System.err.println("FTP服务器登录失败!");
-                    return null;
-                }
-                else System.out.println( "FTP服务器登录成功..." );
-            }
-
             ftpClient.enterLocalPassiveMode();
             ftpClient.configure(new FTPClientConfig("com.head.ftp.UnixFTPEntryParser"));
             files = ftpClient.listFiles(strDirector);
@@ -136,33 +158,13 @@ public class Ftp {
                                            String strPath ,
                                            String strLocalPath )
     {
-        FTPClient ftpClient = new FTPClient();
-        FTPClientConfig config = new FTPClientConfig();
-        ftpClient.configure(config );
+        FTPClient ftpClient = FtpLogin( strHostName , strUser , strPass  ) ;
+        if ( ftpClient == null )
+            return false ;
+
         FileOutputStream fos = null;
         boolean blRet = false ;
         try {
-            ftpClient.connect(strHostName);
-            System.out.println("链接到服务器: " + strHostName + ".");
-            System.out.print( ftpClient.getReplyString() );
-
-            if(FTPReply.isPositiveCompletion(ftpClient.getReplyCode()) == false ) {
-                ftpClient.disconnect();
-                System.err.println("FTP服务器登录失败!");
-                return false;
-            }
-            else System.out.println( "FTP服务器链接成功..." );
-
-            if ( strUser != null && strPass != null )
-            {
-                if ( ftpClient.login(strUser, strPass) == false )  {
-                    ftpClient.disconnect();
-                    System.err.println("FTP服务器登录失败!");
-                    return false;
-                }
-                else System.out.println( "FTP服务器登录成功..." );
-            }
-
             fos = new FileOutputStream( strLocalPath );
             ftpClient.setBufferSize(1024);
             //设置文件类型（二进制）
@@ -200,40 +202,19 @@ public class Ftp {
                                          String strLocalPath ,
                                          String strPath )
     {
-        FTPClient ftpClient = new FTPClient();
-        FTPClientConfig config = new FTPClientConfig();
-        ftpClient.configure(config );
+        FTPClient ftpClient = FtpLogin( strHostName , strUser , strPass  ) ;
+        if ( ftpClient == null )
+            return false ;
+
         InputStream fos = null;
         boolean blRet = false ;
         try {
-            ftpClient.connect(strHostName);
-            System.out.println("链接到服务器: " + strHostName + ".");
-            System.out.print( ftpClient.getReplyString() );
-
-            if ( FTPReply.isPositiveCompletion(ftpClient.getReplyCode()) == false ) {
-                ftpClient.disconnect();
-                System.err.println("FTP服务器登录失败!");
-                return false;
-            }
-            else System.out.println( "FTP服务器链接成功..." );
-
-            if ( strUser != null && strPass != null )
-            {
-                if ( ftpClient.login(strUser, strPass) == false )  {
-                    ftpClient.disconnect();
-                    System.err.println("FTP服务器登录失败!");
-                    return false;
-                }
-                else System.out.println( "FTP服务器登录成功..." );
-            }
-
             ftpClient.enterLocalPassiveMode();
             ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
 
             fos = new FileInputStream( strLocalPath );
-
-            //blRet = ftpClient.storeFile(new String(strPath.getBytes("UTF-8"),"iso-8859-1"),fos) ;
             blRet = ftpClient.storeFile( strPath , fos ) ;
+
             if ( blRet )
                 System.out.println( "文件上传成功!" );
             else
@@ -249,6 +230,43 @@ public class Ftp {
         } finally {
             try {
                 fos.close();
+                ftpClient.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("关闭FTP连接发生异常！", e);
+            }
+        }
+        return blRet ;
+    }
+
+    public static boolean FtpDeleteFile( String strHostName ,
+                                         String strUser ,
+                                         String strPass ,
+                                         String strPath )
+    {
+        FTPClient ftpClient = FtpLogin( strHostName , strUser , strPass  ) ;
+        if ( ftpClient == null )
+            return false ;
+
+        boolean blRet = false ;
+        try {
+            blRet = ftpClient.deleteFile( strPath ) ;
+
+            if ( blRet )
+                System.out.println( "文件删除成功!" );
+            else
+                System.out.println( "文件删除失败!" );
+
+            if (ftpClient.logout())
+                System.out.println("注销成功!");
+            else
+                System.out.println("注销失败!");
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
                 ftpClient.disconnect();
             } catch (IOException e) {
                 e.printStackTrace();
