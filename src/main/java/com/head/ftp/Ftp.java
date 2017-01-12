@@ -77,6 +77,8 @@ public class Ftp {
 
         //目录删除测试
 //        boolean blRet = FtpRemoveDir( strHostName , strUser , strPass , strDirTest ) ;
+
+        System.out.println( "test over!" );
     }
 
     /**
@@ -287,7 +289,6 @@ public class Ftp {
     {
         while ( strDir.endsWith("/") )
             strDir = strDir.substring( 0 , strDir.length() - 1 ) ;
-
 
         FTPClient ftpClient = FtpLogin( strHostName , strUser , strPass  ) ;
         if ( ftpClient == null )
