@@ -30,7 +30,7 @@ public class Ftp {
         String strLocalPath2 = "/home/user/aaa.log" ;
 
         String strPath3 = "./abcde.log" ;
-        String strLocalPath3 = "/home/user/myFtp" ;
+        String strLocalPath3 = "/home/user/myFtp"  ;
 
 //        String strHostName = "ftp.twaren.net" ;
 //        String strUser = null ;
