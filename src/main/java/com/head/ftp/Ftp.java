@@ -32,6 +32,8 @@ public class Ftp {
         String strPath3 = "./abcde.log" ;
         String strLocalPath3 = "/home/user/myFtp"  ;
 
+        String strDirTest = "./sssss/" ;
+
 //        String strHostName = "ftp.twaren.net" ;
 //        String strUser = null ;
 //        String strPass = null ;
@@ -66,12 +68,15 @@ public class Ftp {
 //        }
 
         //文件上传测试
-        boolean blRet = FtpUploadFile( strHostName , strUser , strPass , strLocalPath3 , strPath3 ) ;
-        System.out.println( "Upload File: " + strPath3 + " ===> " + ((blRet != false)?"OK":"FALSE") ) ;
+//        boolean blRet = FtpUploadFile( strHostName , strUser , strPass , strLocalPath3 , strPath3 ) ;
+//        System.out.println( "Upload File: " + strPath3 + " ===> " + ((blRet != false)?"OK":"FALSE") ) ;
 
         //文件删除测试
-        blRet = FtpDeleteFile( strHostName , strUser , strPass , strPath3 ) ;
-        System.out.println( "Delete File: " + strPath3 + " ===> " + ((blRet != false)?"OK":"FALSE") ) ;
+//        boolean blRet = FtpDeleteFile( strHostName , strUser , strPass , "./abcde/a.log" ) ;
+//        System.out.println( "Delete File: " + strPath3 + " ===> " + ((blRet != false)?"OK":"FALSE") ) ;
+
+        //目录删除测试
+//        boolean blRet = FtpRemoveDir( strHostName , strUser , strPass , strDirTest ) ;
     }
 
 
@@ -274,6 +279,77 @@ public class Ftp {
             }
         }
         return blRet ;
+    }
+
+    public static boolean FtpRemoveDir( String strHostName ,
+                                        String strUser ,
+                                        String strPass ,
+                                        String strDir )
+    {
+        while ( strDir.endsWith("/") )
+            strDir = strDir.substring( 0 , strDir.length() - 1 ) ;
+
+        FTPClient ftpClient = FtpLogin( strHostName , strUser , strPass  ) ;
+        if ( ftpClient == null )
+            return false ;
+
+        boolean blRet = false ;
+        try {
+            ftpClient.enterLocalPassiveMode();
+            ftpClient.configure(new FTPClientConfig("com.head.ftp.UnixFTPEntryParser"));
+
+            blRet = SubFtpRemoveDir( ftpClient , strDir ) ;
+
+            if ( blRet )
+                System.out.println( "目录删除成功!" );
+            else
+                System.out.println( "目录删除失败!" );
+
+            if (ftpClient.logout())
+                System.out.println("注销成功!");
+            else
+                System.out.println("注销失败!");
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                ftpClient.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("关闭FTP连接发生异常！", e);
+            }
+        }
+        return blRet ;
+    }
+
+    static boolean SubFtpRemoveDir( FTPClient ftpClient , String strDir )
+    {
+        try {
+            FTPFile[] files = ftpClient.listFiles( strDir );
+            for (FTPFile f : files) {
+                if (f.isDirectory()) {
+                    String strFilePath = strDir + "/" + f.getName() ;
+                    if ( !SubFtpRemoveDir( ftpClient , strFilePath ))
+                        return false ;
+                }
+                if (f.isFile()) {
+                    String strFilePath = strDir + "/" + f.getName() ;
+                    System.out.println( "FTP->删除文件: " + strFilePath );
+                    if ( !ftpClient.deleteFile( strFilePath ) )
+                        return false ;
+                }
+            }
+
+            System.out.println( "FTP->删除目录: " + strDir );
+            if ( !ftpClient.removeDirectory( strDir ) )
+                return false ;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
 }
