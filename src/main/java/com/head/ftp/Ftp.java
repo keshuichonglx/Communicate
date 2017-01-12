@@ -288,6 +288,7 @@ public class Ftp {
         while ( strDir.endsWith("/") )
             strDir = strDir.substring( 0 , strDir.length() - 1 ) ;
 
+
         FTPClient ftpClient = FtpLogin( strHostName , strUser , strPass  ) ;
         if ( ftpClient == null )
             return false ;
